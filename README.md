@@ -1,7 +1,5 @@
 # Personal Landing Page
 
-A beautiful, minimalist personal landing page inspired by [leerob.com](https://leerob.com/).
-
 ## Features
 
 - 🎨 Clean, minimalist design
@@ -100,6 +98,4 @@ Simply upload the files and you're good to go!
 Feel free to use this template for your personal website.
 
 ## Inspiration
-
-Design inspired by [Lee Robinson's website](https://leerob.com/).
 
