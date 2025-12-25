@@ -181,6 +181,18 @@ body {
     font-style: italic;
 }
 
+/* Location Section */
+.location-section {
+    margin-bottom: 64px;
+    animation: fadeIn 1.4s ease 0.6s both;
+}
+
+.location-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-tertiary);
+}
+
 /* Posts List */
 .posts-section {
     margin-bottom: 64px;
