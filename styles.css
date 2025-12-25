@@ -210,6 +210,51 @@ body {
     margin-bottom: 64px;
 }
 
+.year-group {
+    margin-bottom: 48px;
+}
+
+.year-heading {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.posts-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-left: 0;
+}
+
+.post-list-item {
+    position: relative;
+    padding-left: 20px;
+}
+
+.post-list-item::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.post-list-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 15px;
+    line-height: 1.6;
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.post-list-link:hover {
+    color: var(--text-primary);
+}
+
 .post-item {
     margin-bottom: 48px;
     padding-bottom: 48px;
