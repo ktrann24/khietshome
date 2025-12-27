@@ -29,11 +29,14 @@ if (!fs.existsSync(IMAGES_DIR)) {
 // Download image from URL and save locally
 async function downloadImage(imageUrl, slug) {
   return new Promise((resolve, reject) => {
-    // Create a hash of the URL for unique filename
-    const urlHash = crypto.createHash('md5').update(imageUrl).digest('hex').slice(0, 12);
-    
-    // Get file extension from URL (before query params)
+    // Extract the stable part of the URL (path only, no query params)
+    // Notion S3 URLs look like: https://prod-files-secure.s3.../workspace-id/block-id/filename.png?X-Amz-...
     const urlPath = imageUrl.split('?')[0];
+    
+    // Create hash from just the path (stable across syncs)
+    const urlHash = crypto.createHash('md5').update(urlPath).digest('hex').slice(0, 12);
+    
+    // Get file extension from URL path
     let ext = path.extname(urlPath).toLowerCase() || '.png';
     // Clean up extension if it has extra characters
     if (ext.length > 5) ext = '.png';
@@ -44,7 +47,7 @@ async function downloadImage(imageUrl, slug) {
     
     // Skip if already downloaded
     if (fs.existsSync(filepath)) {
-      resolve(relativePath);
+      resolve({ path: relativePath, skipped: true });
       return;
     }
     
@@ -68,7 +71,7 @@ async function downloadImage(imageUrl, slug) {
       
       file.on('finish', () => {
         file.close();
-        resolve(relativePath);
+        resolve({ path: relativePath, skipped: false });
       });
     }).on('error', (err) => {
       fs.unlink(filepath, () => {}); // Delete partial file
@@ -248,9 +251,14 @@ async function blocksToHtml(blocks, slug) {
         
         try {
           // Download image locally
-          const localPath = await downloadImage(imageUrl, slug);
+          const result = await downloadImage(imageUrl, slug);
+          const localPath = result.path;
           html = `<figure><img src="${localPath}" alt="${caption}" loading="lazy"><figcaption>${caption}</figcaption></figure>`;
-          console.log(`    📷 Downloaded image: ${localPath}`);
+          if (result.skipped) {
+            console.log(`    📷 Image exists: ${localPath}`);
+          } else {
+            console.log(`    📷 Downloaded: ${localPath}`);
+          }
         } catch (err) {
           console.warn(`    ⚠️  Failed to download image: ${err.message}`);
           // Fallback to original URL if download fails
