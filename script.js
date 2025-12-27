@@ -22,7 +22,7 @@
                     
                     setTimeout(() => {
                         window.location.href = href;
-                    }, 200);
+                    }, 300);
                 });
             }
         });
