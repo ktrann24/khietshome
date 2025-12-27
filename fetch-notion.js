@@ -539,8 +539,12 @@ function richTextToHtml(richTextArray) {
       }
     }
 
-    // Apply links
-    if (text.href) content = `<a href="${text.href}">${content}</a>`;
+    // Apply links - external links open in new tab
+    if (text.href) {
+      const isExternal = text.href.startsWith('http://') || text.href.startsWith('https://');
+      const linkAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+      content = `<a href="${text.href}"${linkAttrs}>${content}</a>`;
+    }
 
     return content;
   }).join('');
