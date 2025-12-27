@@ -410,6 +410,47 @@ body {
     color: var(--accent-color);
 }
 
+/* Images in posts */
+.post-content figure {
+    margin: 32px 0;
+    padding: 0;
+}
+
+.post-content figure img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+@media (prefers-color-scheme: dark) {
+    .post-content figure img {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.post-content figure img:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+@media (prefers-color-scheme: dark) {
+    .post-content figure img:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+}
+
+.post-content figcaption {
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--text-tertiary);
+    text-align: center;
+    font-style: italic;
+}
+
 .post-footer {
     margin-top: 64px;
     padding-top: 32px;

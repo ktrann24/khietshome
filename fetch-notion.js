@@ -2,6 +2,8 @@ require('dotenv').config();
 const { Client } = require('@notionhq/client');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const crypto = require('crypto');
 const { execSync } = require('child_process');
 
 // Check for API key
@@ -17,6 +19,63 @@ const notion = new Client({
 });
 
 const DATABASE_ID = '2d616761a428807b9bbfc15737e61581';
+const IMAGES_DIR = path.join(__dirname, 'thoughts', 'images');
+
+// Ensure images directory exists
+if (!fs.existsSync(IMAGES_DIR)) {
+  fs.mkdirSync(IMAGES_DIR, { recursive: true });
+}
+
+// Download image from URL and save locally
+async function downloadImage(imageUrl, slug) {
+  return new Promise((resolve, reject) => {
+    // Create a hash of the URL for unique filename
+    const urlHash = crypto.createHash('md5').update(imageUrl).digest('hex').slice(0, 12);
+    
+    // Get file extension from URL (before query params)
+    const urlPath = imageUrl.split('?')[0];
+    let ext = path.extname(urlPath).toLowerCase() || '.png';
+    // Clean up extension if it has extra characters
+    if (ext.length > 5) ext = '.png';
+    
+    const filename = `${slug}-${urlHash}${ext}`;
+    const filepath = path.join(IMAGES_DIR, filename);
+    const relativePath = `images/${filename}`;
+    
+    // Skip if already downloaded
+    if (fs.existsSync(filepath)) {
+      resolve(relativePath);
+      return;
+    }
+    
+    const file = fs.createWriteStream(filepath);
+    
+    https.get(imageUrl, (response) => {
+      // Handle redirects
+      if (response.statusCode === 301 || response.statusCode === 302) {
+        downloadImage(response.headers.location, slug)
+          .then(resolve)
+          .catch(reject);
+        return;
+      }
+      
+      if (response.statusCode !== 200) {
+        reject(new Error(`Failed to download image: ${response.statusCode}`));
+        return;
+      }
+      
+      response.pipe(file);
+      
+      file.on('finish', () => {
+        file.close();
+        resolve(relativePath);
+      });
+    }).on('error', (err) => {
+      fs.unlink(filepath, () => {}); // Delete partial file
+      reject(err);
+    });
+  });
+}
 
 // Fetch published posts from Notion
 async function fetchPosts() {
@@ -59,38 +118,51 @@ async function fetchPageContent(pageId) {
   return blocks;
 }
 
-// Convert Notion blocks to HTML
-function blocksToHtml(blocks) {
-  return blocks.map(block => {
+// Convert Notion blocks to HTML (async to handle image downloads)
+async function blocksToHtml(blocks, slug) {
+  const htmlParts = [];
+  
+  for (const block of blocks) {
+    let html = '';
+    
     switch (block.type) {
       case 'paragraph':
         const text = richTextToHtml(block.paragraph.rich_text)
           .replace(/^(<br>)+|(<br>)+$/g, ''); // Trim leading/trailing <br> tags
-        return text ? `<p>${text}</p>` : '';
+        html = text ? `<p>${text}</p>` : '';
+        break;
 
       case 'heading_1':
-        return `<h1>${richTextToHtml(block.heading_1.rich_text)}</h1>`;
+        html = `<h1>${richTextToHtml(block.heading_1.rich_text)}</h1>`;
+        break;
 
       case 'heading_2':
-        return `<h2>${richTextToHtml(block.heading_2.rich_text)}</h2>`;
+        html = `<h2>${richTextToHtml(block.heading_2.rich_text)}</h2>`;
+        break;
 
       case 'heading_3':
-        return `<h3>${richTextToHtml(block.heading_3.rich_text)}</h3>`;
+        html = `<h3>${richTextToHtml(block.heading_3.rich_text)}</h3>`;
+        break;
 
       case 'bulleted_list_item':
-        return `<li>${richTextToHtml(block.bulleted_list_item.rich_text)}</li>`;
+        html = `<li>${richTextToHtml(block.bulleted_list_item.rich_text)}</li>`;
+        break;
 
       case 'numbered_list_item':
-        return `<li>${richTextToHtml(block.numbered_list_item.rich_text)}</li>`;
+        html = `<li>${richTextToHtml(block.numbered_list_item.rich_text)}</li>`;
+        break;
 
       case 'quote':
-        return `<blockquote>${richTextToHtml(block.quote.rich_text)}</blockquote>`;
+        html = `<blockquote>${richTextToHtml(block.quote.rich_text)}</blockquote>`;
+        break;
 
       case 'code':
-        return `<pre><code>${richTextToHtml(block.code.rich_text)}</code></pre>`;
+        html = `<pre><code>${richTextToHtml(block.code.rich_text)}</code></pre>`;
+        break;
 
       case 'divider':
-        return '<hr>';
+        html = '<hr>';
+        break;
 
       case 'image':
         const imageUrl = block.image.type === 'external' 
@@ -99,12 +171,29 @@ function blocksToHtml(blocks) {
         const caption = block.image.caption?.length 
           ? richTextToHtml(block.image.caption) 
           : '';
-        return `<figure><img src="${imageUrl}" alt="${caption}"><figcaption>${caption}</figcaption></figure>`;
+        
+        try {
+          // Download image locally
+          const localPath = await downloadImage(imageUrl, slug);
+          html = `<figure><img src="${localPath}" alt="${caption}" loading="lazy"><figcaption>${caption}</figcaption></figure>`;
+          console.log(`    📷 Downloaded image: ${localPath}`);
+        } catch (err) {
+          console.warn(`    ⚠️  Failed to download image: ${err.message}`);
+          // Fallback to original URL if download fails
+          html = `<figure><img src="${imageUrl}" alt="${caption}" loading="lazy"><figcaption>${caption}</figcaption></figure>`;
+        }
+        break;
 
       default:
-        return '';
+        html = '';
     }
-  }).filter(html => html !== '').join('\n\n                    ');
+    
+    if (html) {
+      htmlParts.push(html);
+    }
+  }
+  
+  return htmlParts.join('\n\n                    ');
 }
 
 // Convert Notion rich text to HTML
@@ -332,7 +421,7 @@ async function main() {
 
       // Fetch and convert content
       const blocks = await fetchPageContent(page.id);
-      const htmlContent = blocksToHtml(blocks);
+      const htmlContent = await blocksToHtml(blocks, slug);
 
       // Generate and write post HTML
       const postHtml = generatePostHtml(title, date, htmlContent);
@@ -388,8 +477,8 @@ async function pushToProduction() {
       return;
     }
 
-    // Stage, commit, and push
-    execSync('git add thoughts/', { stdio: 'inherit' });
+    // Stage, commit, and push (include images)
+    execSync('git add thoughts/ thoughts/images/', { stdio: 'inherit' });
     
     const date = new Date().toISOString().split('T')[0];
     execSync(`git commit -m "Update blog posts from Notion - ${date}"`, { stdio: 'inherit' });
