@@ -1,0 +1,17 @@
+{
+  "name": "khietshome",
+  "version": "1.0.0",
+  "description": "Personal website for Khiet Tran",
+  "main": "fetch-notion.js",
+  "scripts": {
+    "fetch": "node fetch-notion.js",
+    "build": "node fetch-notion.js"
+  },
+  "author": "Khiet Tran",
+  "license": "MIT",
+  "dependencies": {
+    "@notionhq/client": "^2.2.14",
+    "dotenv": "^16.3.1"
+  }
+}
+

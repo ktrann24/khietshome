@@ -63,7 +63,8 @@ function blocksToHtml(blocks) {
   return blocks.map(block => {
     switch (block.type) {
       case 'paragraph':
-        const text = richTextToHtml(block.paragraph.rich_text);
+        const text = richTextToHtml(block.paragraph.rich_text)
+          .replace(/^(<br>)+|(<br>)+$/g, ''); // Trim leading/trailing <br> tags
         return text ? `<p>${text}</p>` : '';
 
       case 'heading_1':
@@ -102,7 +103,7 @@ function blocksToHtml(blocks) {
       default:
         return '';
     }
-  }).join('\n                    ');
+  }).filter(html => html !== '').join('\n\n                    ');
 }
 
 // Convert Notion rich text to HTML
@@ -110,7 +111,12 @@ function richTextToHtml(richTextArray) {
   if (!richTextArray || richTextArray.length === 0) return '';
 
   return richTextArray.map(text => {
-    let content = text.plain_text;
+    // Escape HTML and convert newlines to <br>
+    let content = text.plain_text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
 
     // Apply annotations
     if (text.annotations.bold) content = `<strong>${content}</strong>`;
