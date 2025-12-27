@@ -565,7 +565,10 @@ function slugify(text) {
 
 // Format date for display
 function formatDate(dateString) {
-  const date = new Date(dateString);
+  // Parse the date string as local date to avoid timezone shift
+  // Notion returns dates like "2025-12-26" which should be displayed as-is
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day); // month is 0-indexed
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -575,7 +578,9 @@ function formatDate(dateString) {
 
 // Format date for post list (short format)
 function formatDateShort(dateString) {
-  const date = new Date(dateString);
+  // Parse the date string as local date to avoid timezone shift
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day); // month is 0-indexed
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric'
