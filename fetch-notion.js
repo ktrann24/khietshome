@@ -319,10 +319,11 @@ async function main() {
 
   try {
     const pages = await fetchPosts();
-    console.log(`📝 Found ${pages.length} posts`);
+    console.log(`📝 Found ${pages.length} published posts`);
 
     const posts = [];
     const thoughtsDir = path.join(__dirname, 'thoughts');
+    const generatedFiles = new Set(['index.html']); // Track files we generate
 
     // Process each post
     for (const page of pages) {
@@ -335,8 +336,10 @@ async function main() {
 
       // Generate and write post HTML
       const postHtml = generatePostHtml(title, date, htmlContent);
-      fs.writeFileSync(path.join(thoughtsDir, `${slug}.html`), postHtml);
+      const filename = `${slug}.html`;
+      fs.writeFileSync(path.join(thoughtsDir, filename), postHtml);
 
+      generatedFiles.add(filename);
       posts.push({ title, date, slug });
     }
 
@@ -344,8 +347,22 @@ async function main() {
     const indexHtml = generateIndexHtml(posts);
     fs.writeFileSync(path.join(thoughtsDir, 'index.html'), indexHtml);
 
-    console.log('✅ Successfully generated all posts!');
+    // Clean up orphaned files (posts that were unpublished or renamed)
+    const existingFiles = fs.readdirSync(thoughtsDir).filter(f => f.endsWith('.html'));
+    let deletedCount = 0;
+    for (const file of existingFiles) {
+      if (!generatedFiles.has(file)) {
+        fs.unlinkSync(path.join(thoughtsDir, file));
+        console.log(`  🗑️  Deleted orphaned file: ${file}`);
+        deletedCount++;
+      }
+    }
+
+    console.log('✅ Successfully synced all posts!');
     console.log(`   ${posts.length} posts written to /thoughts/`);
+    if (deletedCount > 0) {
+      console.log(`   ${deletedCount} orphaned file(s) removed`);
+    }
 
     // Auto-push to production if --push flag is passed
     if (process.argv.includes('--push')) {
