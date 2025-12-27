@@ -360,6 +360,13 @@ body {
     color: var(--text-tertiary);
 }
 
+.post-tags {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 6px;
+    font-style: italic;
+}
+
 .post-content {
     font-size: 17px;
     line-height: 1.8;

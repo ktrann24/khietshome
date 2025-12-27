@@ -551,8 +551,16 @@ function getPageProperties(page) {
   const title = page.properties.Title?.title?.[0]?.plain_text || 'Untitled';
   const date = page.properties['Published Date']?.date?.start || new Date().toISOString().split('T')[0];
   const slug = slugify(title);
+  
+  // Get tags - handle both select (single) and multi_select (multiple) property types
+  let tags = [];
+  if (page.properties.Tags?.multi_select) {
+    tags = page.properties.Tags.multi_select.map(tag => tag.name);
+  } else if (page.properties.Tags?.select?.name) {
+    tags = [page.properties.Tags.select.name];
+  }
 
-  return { title, date, slug };
+  return { title, date, slug, tags };
 }
 
 // Create URL-friendly slug
@@ -588,7 +596,11 @@ function formatDateShort(dateString) {
 }
 
 // Generate HTML for a single post
-function generatePostHtml(title, date, content) {
+function generatePostHtml(title, date, content, tags = []) {
+  const tagsHtml = tags.length > 0 
+    ? `\n                    <p class="post-tags">${tags.map(tag => tag.toLowerCase()).join(', ')}</p>`
+    : '';
+  
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -615,7 +627,7 @@ function generatePostHtml(title, date, content) {
             <article class="blog-post">
                 <div class="post-header">
                     <h1 class="post-title-full">${title}</h1>
-                    <p class="post-meta-full">${formatDate(date)}</p>
+                    <p class="post-meta-full">${formatDate(date)}</p>${tagsHtml}
                 </div>
 
                 <div class="post-content">
@@ -745,20 +757,20 @@ async function main() {
 
     // Process each post
     for (const page of pages) {
-      const { title, date, slug } = getPageProperties(page);
-      console.log(`  → Processing: ${title}`);
+      const { title, date, slug, tags } = getPageProperties(page);
+      console.log(`  → Processing: ${title}${tags.length > 0 ? ` (${tags.join(', ')})` : ''}`);
 
       // Fetch and convert content
       const blocks = await fetchPageContent(page.id);
       const htmlContent = await blocksToHtml(blocks, slug);
 
       // Generate and write post HTML
-      const postHtml = generatePostHtml(title, date, htmlContent);
+      const postHtml = generatePostHtml(title, date, htmlContent, tags);
       const filename = `${slug}.html`;
       fs.writeFileSync(path.join(thoughtsDir, filename), postHtml);
 
       generatedFiles.add(filename);
-      posts.push({ title, date, slug });
+      posts.push({ title, date, slug, tags });
     }
 
     // Generate and write index page
