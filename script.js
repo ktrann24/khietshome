@@ -1,3 +1,34 @@
+// Page transition handling for smoother navigation
+// Uses View Transitions API when available, falls back to opacity fade
+(function() {
+    // Check if View Transitions API is supported
+    const supportsViewTransitions = 'startViewTransition' in document;
+    
+    if (!supportsViewTransitions) {
+        // Fallback: Add smooth fade transition for page navigations
+        document.querySelectorAll('a').forEach(link => {
+            const href = link.getAttribute('href');
+            // Only handle internal navigation links (not external, hash, or javascript links)
+            if (href && 
+                !href.startsWith('#') && 
+                !href.startsWith('http') && 
+                !href.startsWith('mailto:') &&
+                !href.startsWith('javascript:') &&
+                !link.hasAttribute('target')) {
+                
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.body.classList.add('page-transitioning');
+                    
+                    setTimeout(() => {
+                        window.location.href = href;
+                    }, 200);
+                });
+            }
+        });
+    }
+})();
+
 // Smooth scroll for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {

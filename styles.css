@@ -57,7 +57,7 @@ body {
 /* Header & Navigation */
 .header {
     padding: 40px 0 48px;
-    animation: fadeInDown 0.4s ease-out backwards;
+    animation: fadeInDown 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 
 .nav {
@@ -113,14 +113,14 @@ body {
     letter-spacing: -0.01em;
     line-height: 1.3;
     color: var(--text-primary);
-    animation: fadeInUp 0.4s ease-out backwards;
+    animation: fadeInUp 0.55s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 
 .hero-content {
     display: flex;
     flex-direction: column;
     gap: 24px;
-    animation: fadeInUp 0.4s ease-out 0.1s backwards;
+    animation: fadeInUp 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.08s backwards;
 }
 
 .hero-text {
@@ -151,7 +151,7 @@ body {
     border-radius: 8px;
     border: 1px solid var(--border-color);
     margin-top: 8px;
-    animation: slideInUp 1s ease;
+    animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.15s backwards;
 }
 
 .activity-label {
@@ -169,7 +169,7 @@ body {
 /* Writing Section */
 .writing-section {
     margin-bottom: 64px;
-    animation: fadeIn 1s ease 0.2s both;
+    animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.12s backwards;
 }
 
 .writing-text {
@@ -181,7 +181,7 @@ body {
 /* Tagline Section */
 .tagline-section {
     margin-bottom: 64px;
-    animation: fadeIn 1.2s ease 0.4s both;
+    animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.16s backwards;
 }
 
 .tagline-text {
@@ -194,7 +194,7 @@ body {
 /* Location Section */
 .location-section {
     margin-bottom: 80px;
-    animation: fadeInUp 0.4s ease-out 0.2s backwards;
+    animation: fadeInUp 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.12s backwards;
 }
 
 .location-text {
@@ -289,15 +289,15 @@ body {
     margin-bottom: 48px;
     padding-bottom: 48px;
     border-bottom: 1px solid var(--border-color);
-    animation: fadeIn 0.6s ease forwards;
+    animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
     opacity: 0;
 }
 
-.post-item:nth-child(1) { animation-delay: 0.1s; }
-.post-item:nth-child(2) { animation-delay: 0.2s; }
-.post-item:nth-child(3) { animation-delay: 0.3s; }
-.post-item:nth-child(4) { animation-delay: 0.4s; }
-.post-item:nth-child(5) { animation-delay: 0.5s; }
+.post-item:nth-child(1) { animation-delay: 0.08s; }
+.post-item:nth-child(2) { animation-delay: 0.14s; }
+.post-item:nth-child(3) { animation-delay: 0.20s; }
+.post-item:nth-child(4) { animation-delay: 0.26s; }
+.post-item:nth-child(5) { animation-delay: 0.32s; }
 
 .post-item:last-child {
     border-bottom: none;
@@ -340,7 +340,7 @@ body {
 
 /* Individual Blog Post */
 .blog-post {
-    animation: fadeIn 0.8s ease;
+    animation: fadeIn 0.55s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 
 .post-header {
@@ -878,7 +878,7 @@ body {
 .footer {
     padding: 48px 0 32px;
     border-top: 1px solid var(--border-color);
-    animation: fadeInUp 0.4s ease-out 0.3s backwards;
+    animation: fadeInUp 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
 }
 
 .social-links {
@@ -913,11 +913,50 @@ body {
     color: var(--text-tertiary);
 }
 
-/* Animations */
+/* Page Transitions (View Transitions API) */
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.35s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-old(root) {
+    animation-name: fade-out;
+}
+
+::view-transition-new(root) {
+    animation-name: fade-in;
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Fallback page transition for non-supporting browsers */
+body {
+    opacity: 1;
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.page-transitioning {
+    opacity: 0;
+}
+
+/* Animations - smoother curves and timing */
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(16px);
     }
     to {
         opacity: 1;
@@ -928,7 +967,7 @@ body {
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(12px);
     }
     to {
         opacity: 1;
@@ -939,7 +978,7 @@ body {
 @keyframes fadeInDown {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-12px);
     }
     to {
         opacity: 1;
@@ -950,7 +989,7 @@ body {
 @keyframes slideInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(24px);
     }
     to {
         opacity: 1;
@@ -961,7 +1000,7 @@ body {
 @keyframes slideInLeft {
     from {
         opacity: 0;
-        transform: translateX(-20px);
+        transform: translateX(-24px);
     }
     to {
         opacity: 1;
