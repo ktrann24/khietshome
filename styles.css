@@ -451,6 +451,407 @@ body {
     font-style: italic;
 }
 
+/* Blockquotes - Notion style */
+.post-content blockquote {
+    margin: 24px 0;
+    padding: 16px 20px;
+    background-color: var(--bg-secondary);
+    border-left: 3px solid var(--accent-color);
+    border-radius: 0 8px 8px 0;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--text-primary);
+}
+
+.post-content blockquote p {
+    margin-bottom: 0;
+}
+
+/* Code blocks */
+.post-content pre {
+    margin: 24px 0;
+    padding: 20px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.post-content pre code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    color: var(--text-primary);
+    background: none;
+    padding: 0;
+}
+
+/* Inline code */
+.post-content code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9em;
+    padding: 2px 6px;
+    background-color: var(--bg-secondary);
+    border-radius: 4px;
+    color: var(--text-primary);
+}
+
+/* Horizontal rule / divider */
+.post-content hr {
+    margin: 48px 0;
+    border: none;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Callouts - Notion style */
+.post-content .callout {
+    display: flex;
+    gap: 12px;
+    margin: 24px 0;
+    padding: 16px 20px;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.post-content .callout-icon {
+    font-size: 20px;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+
+.post-content .callout-content {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+/* Callout color variants */
+.post-content .callout-gray_background { background-color: var(--bg-secondary); }
+.post-content .callout-brown_background { background-color: rgba(159, 107, 83, 0.1); }
+.post-content .callout-orange_background { background-color: rgba(217, 115, 13, 0.1); }
+.post-content .callout-yellow_background { background-color: rgba(203, 145, 47, 0.1); }
+.post-content .callout-green_background { background-color: rgba(68, 131, 97, 0.1); }
+.post-content .callout-blue_background { background-color: rgba(51, 126, 169, 0.1); }
+.post-content .callout-purple_background { background-color: rgba(144, 101, 176, 0.1); }
+.post-content .callout-pink_background { background-color: rgba(193, 76, 138, 0.1); }
+.post-content .callout-red_background { background-color: rgba(212, 76, 71, 0.1); }
+
+/* Todo items */
+.post-content .todo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 8px 0;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.post-content .todo-item input[type="checkbox"] {
+    margin-top: 5px;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-color);
+}
+
+.post-content .todo-checked {
+    text-decoration: line-through;
+    color: var(--text-tertiary);
+}
+
+/* Bookmark links */
+.post-content .bookmark-link {
+    display: block;
+    margin: 24px 0;
+    padding: 16px 20px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.post-content .bookmark-link:hover {
+    border-color: var(--accent-color);
+    background-color: var(--accent-subtle);
+}
+
+/* Video embeds */
+.post-content .video-embed {
+    margin: 32px 0;
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.post-content .video-embed iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+.post-content video {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 24px 0;
+}
+
+/* Embed containers */
+.post-content .embed-container {
+    margin: 24px 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.post-content .embed-container iframe {
+    width: 100%;
+    min-height: 400px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+/* Toggle/collapsible */
+.post-content details.toggle {
+    margin: 16px 0;
+    padding: 12px 16px;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.post-content details.toggle summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-primary);
+    list-style: none;
+}
+
+.post-content details.toggle summary::before {
+    content: '▶';
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.post-content details.toggle[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.post-content .toggle-content {
+    padding: 12px 0 0 24px;
+}
+
+/* Tables - Notion style */
+.post-content .notion-table {
+    width: 100%;
+    margin: 24px 0;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.post-content .notion-table th,
+.post-content .notion-table td {
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+}
+
+.post-content .notion-table th {
+    background-color: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.post-content .notion-table tr:hover td {
+    background-color: var(--accent-subtle);
+}
+
+/* Columns layout */
+.post-content .columns {
+    display: flex;
+    gap: 24px;
+    margin: 24px 0;
+}
+
+.post-content .column {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 640px) {
+    .post-content .columns {
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+/* Equations */
+.post-content .equation {
+    margin: 24px 0;
+    padding: 16px;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 18px;
+    overflow-x: auto;
+}
+
+/* Audio player */
+.post-content .audio-player {
+    width: 100%;
+    margin: 24px 0;
+    border-radius: 8px;
+}
+
+/* File downloads */
+.post-content .file-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0;
+    padding: 12px 16px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: 15px;
+    transition: var(--transition);
+}
+
+.post-content .file-download:hover {
+    border-color: var(--accent-color);
+    background-color: var(--accent-subtle);
+}
+
+/* Link previews */
+.post-content .link-preview {
+    display: block;
+    margin: 24px 0;
+    padding: 16px 20px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--accent-color);
+    font-size: 15px;
+    word-break: break-all;
+    transition: var(--transition);
+}
+
+.post-content .link-preview:hover {
+    border-color: var(--accent-color);
+}
+
+/* PDF embeds */
+.post-content .pdf-embed {
+    margin: 24px 0;
+}
+
+.post-content .pdf-embed iframe {
+    width: 100%;
+    height: 600px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.post-content .pdf-embed figcaption {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--text-tertiary);
+    text-align: center;
+}
+
+/* Code block with language label */
+.post-content .code-block {
+    margin: 24px 0;
+}
+
+.post-content .code-caption {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    text-align: right;
+}
+
+/* Todo children nesting */
+.post-content .todo-children {
+    margin-left: 26px;
+    margin-top: 8px;
+}
+
+/* Notion text colors */
+.post-content .text-gray { color: #9b9a97; }
+.post-content .text-brown { color: #64473a; }
+.post-content .text-orange { color: #d9730d; }
+.post-content .text-yellow { color: #cb912f; }
+.post-content .text-green { color: #448361; }
+.post-content .text-blue { color: #337ea9; }
+.post-content .text-purple { color: #9065b0; }
+.post-content .text-pink { color: #c14c8a; }
+.post-content .text-red { color: #d44c47; }
+
+/* Text background colors */
+.post-content .text-gray_background { background-color: rgba(155, 154, 151, 0.15); padding: 2px 4px; border-radius: 3px; }
+.post-content .text-brown_background { background-color: rgba(100, 71, 58, 0.15); padding: 2px 4px; border-radius: 3px; }
+.post-content .text-orange_background { background-color: rgba(217, 115, 13, 0.15); padding: 2px 4px; border-radius: 3px; }
+.post-content .text-yellow_background { background-color: rgba(203, 145, 47, 0.15); padding: 2px 4px; border-radius: 3px; }
+.post-content .text-green_background { background-color: rgba(68, 131, 97, 0.15); padding: 2px 4px; border-radius: 3px; }
+.post-content .text-blue_background { background-color: rgba(51, 126, 169, 0.15); padding: 2px 4px; border-radius: 3px; }
+.post-content .text-purple_background { background-color: rgba(144, 101, 176, 0.15); padding: 2px 4px; border-radius: 3px; }
+.post-content .text-pink_background { background-color: rgba(193, 76, 138, 0.15); padding: 2px 4px; border-radius: 3px; }
+.post-content .text-red_background { background-color: rgba(212, 76, 71, 0.15); padding: 2px 4px; border-radius: 3px; }
+
+/* Dark mode text colors */
+@media (prefers-color-scheme: dark) {
+    .post-content .text-gray { color: #979a9b; }
+    .post-content .text-brown { color: #937264; }
+    .post-content .text-orange { color: #ffa344; }
+    .post-content .text-yellow { color: #ffdc49; }
+    .post-content .text-green { color: #4dab9a; }
+    .post-content .text-blue { color: #529cca; }
+    .post-content .text-purple { color: #9a6dd7; }
+    .post-content .text-pink { color: #e255a1; }
+    .post-content .text-red { color: #ff7369; }
+}
+
+/* Mentions */
+.post-content .mention {
+    padding: 2px 6px;
+    background-color: var(--accent-subtle);
+    border-radius: 4px;
+    font-size: 0.95em;
+}
+
+.post-content .mention-date {
+    color: var(--text-secondary);
+}
+
+.post-content .mention-user {
+    color: var(--accent-color);
+}
+
+.post-content .mention-page {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+}
+
+/* Inline equations */
+.post-content .inline-equation {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+}
+
 .post-footer {
     margin-top: 64px;
     padding-top: 32px;

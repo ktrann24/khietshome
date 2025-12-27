@@ -118,11 +118,33 @@ async function fetchPageContent(pageId) {
   return blocks;
 }
 
-// Convert Notion blocks to HTML (async to handle image downloads)
+// Fetch children blocks for blocks that have nested content
+async function fetchBlockChildren(blockId) {
+  const blocks = [];
+  let cursor = undefined;
+
+  while (true) {
+    const response = await notion.blocks.children.list({
+      block_id: blockId,
+      start_cursor: cursor
+    });
+
+    blocks.push(...response.results);
+
+    if (!response.has_more) break;
+    cursor = response.next_cursor;
+  }
+
+  return blocks;
+}
+
+// Convert Notion blocks to HTML (async to handle image downloads and nested blocks)
 async function blocksToHtml(blocks, slug) {
   const htmlParts = [];
+  let i = 0;
   
-  for (const block of blocks) {
+  while (i < blocks.length) {
+    const block = blocks[i];
     let html = '';
     
     switch (block.type) {
@@ -144,27 +166,79 @@ async function blocksToHtml(blocks, slug) {
         html = `<h3>${richTextToHtml(block.heading_3.rich_text)}</h3>`;
         break;
 
-      case 'bulleted_list_item':
-        html = `<li>${richTextToHtml(block.bulleted_list_item.rich_text)}</li>`;
+      case 'bulleted_list_item': {
+        // Collect consecutive bulleted list items and wrap in <ul>
+        const listItems = [];
+        while (i < blocks.length && blocks[i].type === 'bulleted_list_item') {
+          const itemText = richTextToHtml(blocks[i].bulleted_list_item.rich_text);
+          let itemHtml = `<li>${itemText}`;
+          // Handle nested children
+          if (blocks[i].has_children) {
+            const children = await fetchBlockChildren(blocks[i].id);
+            const childrenHtml = await blocksToHtml(children, slug);
+            itemHtml += `\n${childrenHtml}`;
+          }
+          itemHtml += '</li>';
+          listItems.push(itemHtml);
+          i++;
+        }
+        i--; // Adjust since the outer loop will increment
+        html = `<ul>\n${listItems.join('\n')}\n</ul>`;
         break;
+      }
 
-      case 'numbered_list_item':
-        html = `<li>${richTextToHtml(block.numbered_list_item.rich_text)}</li>`;
+      case 'numbered_list_item': {
+        // Collect consecutive numbered list items and wrap in <ol>
+        const listItems = [];
+        while (i < blocks.length && blocks[i].type === 'numbered_list_item') {
+          const itemText = richTextToHtml(blocks[i].numbered_list_item.rich_text);
+          let itemHtml = `<li>${itemText}`;
+          // Handle nested children
+          if (blocks[i].has_children) {
+            const children = await fetchBlockChildren(blocks[i].id);
+            const childrenHtml = await blocksToHtml(children, slug);
+            itemHtml += `\n${childrenHtml}`;
+          }
+          itemHtml += '</li>';
+          listItems.push(itemHtml);
+          i++;
+        }
+        i--; // Adjust since the outer loop will increment
+        html = `<ol>\n${listItems.join('\n')}\n</ol>`;
         break;
+      }
 
-      case 'quote':
-        html = `<blockquote>${richTextToHtml(block.quote.rich_text)}</blockquote>`;
+      case 'quote': {
+        let quoteHtml = richTextToHtml(block.quote.rich_text);
+        // Handle nested children in quotes
+        if (block.has_children) {
+          const children = await fetchBlockChildren(block.id);
+          const childrenHtml = await blocksToHtml(children, slug);
+          quoteHtml += `\n${childrenHtml}`;
+        }
+        html = `<blockquote>${quoteHtml}</blockquote>`;
         break;
+      }
 
-      case 'code':
-        html = `<pre><code>${richTextToHtml(block.code.rich_text)}</code></pre>`;
+      case 'code': {
+        const language = block.code.language || 'plaintext';
+        const codeText = block.code.rich_text.map(t => t.plain_text).join('');
+        const escapedCode = codeText
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+        const codeCaption = block.code.caption?.length 
+          ? `<figcaption class="code-caption">${richTextToHtml(block.code.caption)}</figcaption>` 
+          : '';
+        html = `<figure class="code-block"><pre><code class="language-${language}">${escapedCode}</code></pre>${codeCaption}</figure>`;
         break;
+      }
 
       case 'divider':
         html = '<hr>';
         break;
 
-      case 'image':
+      case 'image': {
         const imageUrl = block.image.type === 'external' 
           ? block.image.external.url 
           : block.image.file.url;
@@ -183,14 +257,221 @@ async function blocksToHtml(blocks, slug) {
           html = `<figure><img src="${imageUrl}" alt="${caption}" loading="lazy"><figcaption>${caption}</figcaption></figure>`;
         }
         break;
+      }
+
+      case 'callout': {
+        const calloutIcon = block.callout.icon?.emoji || block.callout.icon?.external?.url || '💡';
+        let calloutContent = richTextToHtml(block.callout.rich_text);
+        const calloutColor = block.callout.color || 'default';
+        // Handle nested children in callouts
+        if (block.has_children) {
+          const children = await fetchBlockChildren(block.id);
+          const childrenHtml = await blocksToHtml(children, slug);
+          calloutContent += `\n${childrenHtml}`;
+        }
+        html = `<div class="callout callout-${calloutColor}"><span class="callout-icon">${calloutIcon}</span><div class="callout-content">${calloutContent}</div></div>`;
+        break;
+      }
+
+      case 'to_do': {
+        const todoChecked = block.to_do.checked;
+        let todoContent = richTextToHtml(block.to_do.rich_text);
+        // Handle nested children
+        if (block.has_children) {
+          const children = await fetchBlockChildren(block.id);
+          const childrenHtml = await blocksToHtml(children, slug);
+          todoContent += `\n<div class="todo-children">${childrenHtml}</div>`;
+        }
+        html = `<div class="todo-item"><input type="checkbox" ${todoChecked ? 'checked' : ''} disabled><span class="${todoChecked ? 'todo-checked' : ''}">${todoContent}</span></div>`;
+        break;
+      }
+
+      case 'bookmark': {
+        const bookmarkUrl = block.bookmark.url;
+        const bookmarkCaption = block.bookmark.caption?.length 
+          ? richTextToHtml(block.bookmark.caption) 
+          : bookmarkUrl;
+        html = `<a href="${bookmarkUrl}" class="bookmark-link" target="_blank" rel="noopener noreferrer">${bookmarkCaption}</a>`;
+        break;
+      }
+
+      case 'link_preview': {
+        const previewUrl = block.link_preview.url;
+        html = `<a href="${previewUrl}" class="link-preview" target="_blank" rel="noopener noreferrer">${previewUrl}</a>`;
+        break;
+      }
+
+      case 'video': {
+        const videoUrl = block.video.type === 'external' 
+          ? block.video.external.url 
+          : block.video.file.url;
+        // Handle YouTube embeds
+        if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+          const videoId = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1];
+          if (videoId) {
+            html = `<div class="video-embed"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>`;
+          }
+        } else if (videoUrl.includes('vimeo.com')) {
+          const vimeoId = videoUrl.match(/vimeo\.com\/(\d+)/)?.[1];
+          if (vimeoId) {
+            html = `<div class="video-embed"><iframe src="https://player.vimeo.com/video/${vimeoId}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>`;
+          }
+        } else {
+          html = `<video controls><source src="${videoUrl}"></video>`;
+        }
+        break;
+      }
+
+      case 'audio': {
+        const audioUrl = block.audio.type === 'external' 
+          ? block.audio.external.url 
+          : block.audio.file.url;
+        html = `<audio controls class="audio-player"><source src="${audioUrl}">Your browser does not support audio.</audio>`;
+        break;
+      }
+
+      case 'file': {
+        const fileUrl = block.file.type === 'external' 
+          ? block.file.external.url 
+          : block.file.file.url;
+        const fileName = block.file.name || fileUrl.split('/').pop()?.split('?')[0] || 'Download';
+        const fileCaption = block.file.caption?.length 
+          ? richTextToHtml(block.file.caption) 
+          : fileName;
+        html = `<a href="${fileUrl}" class="file-download" target="_blank" rel="noopener noreferrer" download>📎 ${fileCaption}</a>`;
+        break;
+      }
+
+      case 'pdf': {
+        const pdfUrl = block.pdf.type === 'external' 
+          ? block.pdf.external.url 
+          : block.pdf.file.url;
+        const pdfCaption = block.pdf.caption?.length 
+          ? richTextToHtml(block.pdf.caption) 
+          : 'PDF Document';
+        html = `<figure class="pdf-embed"><iframe src="${pdfUrl}" loading="lazy"></iframe><figcaption>${pdfCaption}</figcaption></figure>`;
+        break;
+      }
+
+      case 'embed': {
+        const embedUrl = block.embed.url;
+        html = `<div class="embed-container"><iframe src="${embedUrl}" frameborder="0" loading="lazy"></iframe></div>`;
+        break;
+      }
+
+      case 'toggle': {
+        const toggleText = richTextToHtml(block.toggle.rich_text);
+        let toggleContent = '';
+        // Toggles always have children
+        if (block.has_children) {
+          const children = await fetchBlockChildren(block.id);
+          toggleContent = await blocksToHtml(children, slug);
+        }
+        html = `<details class="toggle"><summary>${toggleText}</summary><div class="toggle-content">${toggleContent}</div></details>`;
+        break;
+      }
+
+      case 'table': {
+        // Tables have table_row children
+        if (block.has_children) {
+          const rows = await fetchBlockChildren(block.id);
+          const hasColumnHeader = block.table.has_column_header;
+          const hasRowHeader = block.table.has_row_header;
+          
+          let tableHtml = '<table class="notion-table">';
+          rows.forEach((row, rowIndex) => {
+            if (row.type === 'table_row') {
+              const isHeaderRow = hasColumnHeader && rowIndex === 0;
+              const cellTag = isHeaderRow ? 'th' : 'td';
+              tableHtml += '<tr>';
+              row.table_row.cells.forEach((cell, cellIndex) => {
+                const isHeaderCell = hasRowHeader && cellIndex === 0;
+                const tag = isHeaderRow || isHeaderCell ? 'th' : 'td';
+                const cellContent = cell.map(rt => richTextToHtml([rt])).join('');
+                tableHtml += `<${tag}>${cellContent}</${tag}>`;
+              });
+              tableHtml += '</tr>';
+            }
+          });
+          tableHtml += '</table>';
+          html = tableHtml;
+        }
+        break;
+      }
+
+      case 'column_list': {
+        // Column lists contain column children
+        if (block.has_children) {
+          const columns = await fetchBlockChildren(block.id);
+          let columnsHtml = '<div class="columns">';
+          for (const column of columns) {
+            if (column.type === 'column' && column.has_children) {
+              const columnBlocks = await fetchBlockChildren(column.id);
+              const columnContent = await blocksToHtml(columnBlocks, slug);
+              columnsHtml += `<div class="column">${columnContent}</div>`;
+            }
+          }
+          columnsHtml += '</div>';
+          html = columnsHtml;
+        }
+        break;
+      }
+
+      case 'synced_block': {
+        // Synced blocks reference content from another block
+        if (block.synced_block.synced_from) {
+          // This is a reference to another synced block
+          const originalBlockId = block.synced_block.synced_from.block_id;
+          try {
+            const children = await fetchBlockChildren(originalBlockId);
+            html = await blocksToHtml(children, slug);
+          } catch (err) {
+            console.warn(`    ⚠️  Failed to fetch synced block: ${err.message}`);
+          }
+        } else if (block.has_children) {
+          // This is the original synced block
+          const children = await fetchBlockChildren(block.id);
+          html = await blocksToHtml(children, slug);
+        }
+        break;
+      }
+
+      case 'equation': {
+        const expression = block.equation.expression;
+        // Render as a block equation
+        html = `<div class="equation" data-equation="${expression.replace(/"/g, '&quot;')}">\\[${expression}\\]</div>`;
+        break;
+      }
+
+      case 'table_of_contents':
+        // Skip - we can generate our own TOC if needed
+        html = '';
+        break;
+
+      case 'breadcrumb':
+        // Skip - UI navigation element
+        html = '';
+        break;
+
+      case 'child_page':
+        // Skip or link to child page
+        html = '';
+        break;
+
+      case 'child_database':
+        // Skip - embedded databases
+        html = '';
+        break;
 
       default:
+        console.log(`    ⚠️  Unsupported block type: ${block.type}`);
         html = '';
     }
     
     if (html) {
       htmlParts.push(html);
     }
+    i++;
   }
   
   return htmlParts.join('\n\n                    ');
@@ -201,19 +482,54 @@ function richTextToHtml(richTextArray) {
   if (!richTextArray || richTextArray.length === 0) return '';
 
   return richTextArray.map(text => {
-    // Escape HTML and convert newlines to <br>
-    let content = text.plain_text
+    let content;
+    
+    // Handle different rich text types
+    if (text.type === 'equation') {
+      // Inline equation
+      const expr = text.equation.expression;
+      return `<span class="inline-equation" data-equation="${expr.replace(/"/g, '&quot;')}">\\(${expr}\\)</span>`;
+    } else if (text.type === 'mention') {
+      // Handle mentions (user, page, date, etc.)
+      if (text.mention.type === 'date') {
+        const date = text.mention.date;
+        const startDate = new Date(date.start).toLocaleDateString('en-US', { 
+          year: 'numeric', month: 'long', day: 'numeric' 
+        });
+        content = date.end 
+          ? `${startDate} → ${new Date(date.end).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
+          : startDate;
+        return `<span class="mention mention-date">${content}</span>`;
+      } else if (text.mention.type === 'user') {
+        return `<span class="mention mention-user">@${text.plain_text}</span>`;
+      } else if (text.mention.type === 'page' || text.mention.type === 'database') {
+        return `<span class="mention mention-page">${text.plain_text}</span>`;
+      }
+      // Default mention handling
+      return text.plain_text;
+    }
+    
+    // Regular text - escape HTML and convert newlines to <br>
+    content = text.plain_text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/\n/g, '<br>');
 
     // Apply annotations
-    if (text.annotations.bold) content = `<strong>${content}</strong>`;
-    if (text.annotations.italic) content = `<em>${content}</em>`;
-    if (text.annotations.strikethrough) content = `<del>${content}</del>`;
-    if (text.annotations.underline) content = `<u>${content}</u>`;
-    if (text.annotations.code) content = `<code>${content}</code>`;
+    if (text.annotations) {
+      if (text.annotations.bold) content = `<strong>${content}</strong>`;
+      if (text.annotations.italic) content = `<em>${content}</em>`;
+      if (text.annotations.strikethrough) content = `<del>${content}</del>`;
+      if (text.annotations.underline) content = `<u>${content}</u>`;
+      if (text.annotations.code) content = `<code>${content}</code>`;
+      
+      // Apply text color
+      const color = text.annotations.color;
+      if (color && color !== 'default') {
+        content = `<span class="text-${color}">${content}</span>`;
+      }
+    }
 
     // Apply links
     if (text.href) content = `<a href="${text.href}">${content}</a>`;
