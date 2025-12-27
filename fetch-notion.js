@@ -2,6 +2,7 @@ require('dotenv').config();
 const { Client } = require('@notionhq/client');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 // Check for API key
 if (!process.env.NOTION_API_KEY) {
@@ -346,8 +347,41 @@ async function main() {
     console.log('✅ Successfully generated all posts!');
     console.log(`   ${posts.length} posts written to /thoughts/`);
 
+    // Auto-push to production if --push flag is passed
+    if (process.argv.includes('--push')) {
+      await pushToProduction();
+    }
+
   } catch (error) {
     console.error('❌ Error:', error.message);
+    process.exit(1);
+  }
+}
+
+// Push changes to production
+async function pushToProduction() {
+  console.log('\n🚀 Pushing to production...');
+  
+  try {
+    // Check if there are any changes
+    const status = execSync('git status --porcelain', { encoding: 'utf8' });
+    
+    if (!status.trim()) {
+      console.log('   No changes to push.');
+      return;
+    }
+
+    // Stage, commit, and push
+    execSync('git add thoughts/', { stdio: 'inherit' });
+    
+    const date = new Date().toISOString().split('T')[0];
+    execSync(`git commit -m "Update blog posts from Notion - ${date}"`, { stdio: 'inherit' });
+    
+    execSync('git push origin main', { stdio: 'inherit' });
+    
+    console.log('✅ Successfully pushed to production!');
+  } catch (error) {
+    console.error('❌ Failed to push:', error.message);
     process.exit(1);
   }
 }

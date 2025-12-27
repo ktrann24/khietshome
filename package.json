@@ -5,6 +5,7 @@
   "main": "fetch-notion.js",
   "scripts": {
     "fetch": "node fetch-notion.js",
+    "deploy": "node fetch-notion.js --push",
     "build": "node fetch-notion.js"
   },
   "author": "Khiet Tran",
