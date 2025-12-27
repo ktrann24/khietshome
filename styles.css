@@ -1053,12 +1053,12 @@ html {
 
 /* Selection */
 ::selection {
-    background-color: var(--accent-color);
+    background-color: rgba(167, 196, 160, 0.35);
     color: var(--text-primary);
 }
 
 ::-moz-selection {
-    background-color: var(--accent-color);
+    background-color: rgba(167, 196, 160, 0.35);
     color: var(--text-primary);
 }
 
