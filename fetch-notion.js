@@ -636,7 +636,7 @@ function generatePostHtml(title, date, content) {
                     </svg>
                 </a>
             </div>
-            <p class="copyright">© 2025 Khiet Tran. All rights reserved.</p>
+            <p class="copyright">© 2026 Khiet Tran. All rights reserved.</p>
         </footer>
     </div>
 
@@ -721,7 +721,7 @@ ${yearGroupsHtml}
                     </svg>
                 </a>
             </div>
-            <p class="copyright">© 2025 Khiet Tran. All rights reserved.</p>
+            <p class="copyright">© 2026 Khiet Tran. All rights reserved.</p>
         </footer>
     </div>
 
