@@ -268,7 +268,14 @@ async function blocksToHtml(blocks, slug) {
       }
 
       case 'callout': {
-        const calloutIcon = block.callout.icon?.emoji || block.callout.icon?.external?.url || '💡';
+        let calloutIconHtml = '';
+        if (block.callout.icon?.emoji) {
+          calloutIconHtml = `<span class="callout-icon">${block.callout.icon.emoji}</span>`;
+        } else if (block.callout.icon?.external?.url) {
+          calloutIconHtml = `<img class="callout-icon" src="${block.callout.icon.external.url}" alt="" loading="lazy">`;
+        }
+        // If no icon, don't render anything
+        
         let calloutContent = richTextToHtml(block.callout.rich_text);
         const calloutColor = block.callout.color || 'default';
         // Handle nested children in callouts
@@ -277,7 +284,7 @@ async function blocksToHtml(blocks, slug) {
           const childrenHtml = await blocksToHtml(children, slug);
           calloutContent += `\n${childrenHtml}`;
         }
-        html = `<div class="callout callout-${calloutColor}"><span class="callout-icon">${calloutIcon}</span><div class="callout-content">${calloutContent}</div></div>`;
+        html = `<div class="callout callout-${calloutColor}">${calloutIconHtml}<div class="callout-content">${calloutContent}</div></div>`;
         break;
       }
 
