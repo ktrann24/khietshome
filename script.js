@@ -1,3 +1,20 @@
+// Amplitude Analytics - loaded dynamically
+(function() {
+    function loadScript(src, callback) {
+        var script = document.createElement('script');
+        script.src = src;
+        script.onload = callback;
+        document.head.appendChild(script);
+    }
+
+    loadScript('https://cdn.amplitude.com/libs/analytics-browser-2.11.1-min.js.gz', function() {
+        loadScript('https://cdn.amplitude.com/libs/plugin-session-replay-browser-1.25.0-min.js.gz', function() {
+            window.amplitude.add(window.sessionReplay.plugin({sampleRate: 1}));
+            window.amplitude.init('2b85e8ff9c1363926d56441ed8a7fdb0', {"autocapture":{"elementInteractions":true}});
+        });
+    });
+})();
+
 // Page transition handling for smoother navigation
 // Uses View Transitions API when available, falls back to opacity fade
 (function() {
