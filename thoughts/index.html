@@ -30,54 +30,35 @@
                 </div>
             </section>
 
-            <section class="posts-section" id="posts-container">
-                <!-- Posts are auto-grouped by year based on datetime attribute -->
-                <ul class="posts-list-raw" style="display: none;">
-                    <li class="post-list-item" data-date="2026-01-01">
-                        <time class="post-date" datetime="2026-01-01">Jan 1</time>
-                        <a href="how-i-structure-prioritize-my-life.html" class="post-list-link">How I Structure & Prioritize My Life</a>
-                    </li>
-                    <li class="post-list-item" data-date="2025-12-30">
-                        <time class="post-date" datetime="2025-12-30">Dec 30</time>
-                        <a href="building-my-personal-website-from-0-1.html" class="post-list-link">Building My Personal Website from 0 > 1</a>
-                    </li>
-                    <li class="post-list-item" data-date="2025-12-26">
-                        <time class="post-date" datetime="2025-12-26">Dec 26</time>
-                        <a href="welcome.html" class="post-list-link">Welcome</a>
-                    </li>
-                </ul>
-            </section>
+            <section class="posts-section">
+                <div class="year-group">
+                    <h2 class="year-heading">2026</h2>
+                    <ul class="posts-list">
+                        <li class="post-list-item">
+                            <time class="post-date">Jan 5</time>
+                            <a href="reflecting-on-2025-looking-towards-2026.html" class="post-list-link">Reflecting on 2025 + Looking Towards 2026</a>
+                        </li>
+                    </ul>
+                </div>
 
-            <script>
-                // Auto-group posts by year
-                (function() {
-                    const container = document.getElementById('posts-container');
-                    const rawList = container.querySelector('.posts-list-raw');
-                    const posts = Array.from(rawList.querySelectorAll('.post-list-item'));
-                    
-                    // Sort posts by date (newest first)
-                    posts.sort((a, b) => new Date(b.dataset.date) - new Date(a.dataset.date));
-                    
-                    // Group by year
-                    const grouped = {};
-                    posts.forEach(post => {
-                        const year = post.dataset.date.split('-')[0];
-                        if (!grouped[year]) grouped[year] = [];
-                        grouped[year].push(post.cloneNode(true));
-                    });
-                    
-                    // Render year groups (newest year first)
-                    const years = Object.keys(grouped).sort((a, b) => b - a);
-                    years.forEach(year => {
-                        const yearGroup = document.createElement('div');
-                        yearGroup.className = 'year-group';
-                        yearGroup.innerHTML = `<h2 class="year-heading">${year}</h2><ul class="posts-list"></ul>`;
-                        const list = yearGroup.querySelector('.posts-list');
-                        grouped[year].forEach(post => list.appendChild(post));
-                        container.appendChild(yearGroup);
-                    });
-                })();
-            </script>
+                <div class="year-group">
+                    <h2 class="year-heading">2025</h2>
+                    <ul class="posts-list">
+                        <li class="post-list-item">
+                            <time class="post-date">Jan 1</time>
+                            <a href="how-i-structure-prioritize-my-life.html" class="post-list-link">How I Structure & Prioritize My Life</a>
+                        </li>
+                        <li class="post-list-item">
+                            <time class="post-date">Dec 30</time>
+                            <a href="building-my-personal-website-from-0-1.html" class="post-list-link">Building My Personal Website from 0 > 1</a>
+                        </li>
+                        <li class="post-list-item">
+                            <time class="post-date">Dec 26</time>
+                            <a href="welcome.html" class="post-list-link">Welcome</a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
         </main>
 
         <footer class="footer">
