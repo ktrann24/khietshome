@@ -30,55 +30,35 @@
                 </div>
             </section>
 
-            <!-- Posts are automatically grouped by year based on data-date attribute -->
-            <section class="posts-section" id="posts-section">
-                <ul id="posts-data" style="display:none;">
-                    <li data-date="2026-01-05" data-href="reflecting-on-2025-looking-towards-2026.html" data-title="Reflecting on 2025 + Looking Towards 2026"></li>
-                    <li data-date="2026-01-01" data-href="how-i-structure-prioritize-my-life.html" data-title="How I Structure & Prioritize My Life"></li>
-                    <li data-date="2025-12-30" data-href="building-my-personal-website-from-0-1.html" data-title="Building My Personal Website from 0 > 1"></li>
-                    <li data-date="2025-12-26" data-href="welcome.html" data-title="Welcome"></li>
-                </ul>
+            <section class="posts-section">
+                <div class="year-group">
+                    <h2 class="year-heading">2026</h2>
+                    <ul class="posts-list">
+                        <li class="post-list-item">
+                            <time class="post-date">Jan 5</time>
+                            <a href="reflecting-on-2025-looking-towards-2026.html" class="post-list-link">Reflecting on 2025 + Looking Towards 2026</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="year-group">
+                    <h2 class="year-heading">2025</h2>
+                    <ul class="posts-list">
+                        <li class="post-list-item">
+                            <time class="post-date">Jan 1</time>
+                            <a href="how-i-structure-prioritize-my-life.html" class="post-list-link">How I Structure & Prioritize My Life</a>
+                        </li>
+                        <li class="post-list-item">
+                            <time class="post-date">Dec 30</time>
+                            <a href="building-my-personal-website-from-0-1.html" class="post-list-link">Building My Personal Website from 0 > 1</a>
+                        </li>
+                        <li class="post-list-item">
+                            <time class="post-date">Dec 26</time>
+                            <a href="welcome.html" class="post-list-link">Welcome</a>
+                        </li>
+                    </ul>
+                </div>
             </section>
-            <script>
-            (function() {
-                const section = document.getElementById('posts-section');
-                const dataList = document.getElementById('posts-data');
-                const posts = Array.from(dataList.querySelectorAll('li'));
-                
-                // Sort by date descending
-                posts.sort((a, b) => new Date(b.dataset.date) - new Date(a.dataset.date));
-                
-                // Group by year
-                const byYear = {};
-                posts.forEach(p => {
-                    const year = p.dataset.date.substring(0, 4);
-                    if (!byYear[year]) byYear[year] = [];
-                    byYear[year].push(p);
-                });
-                
-                // Format date as "Mon D"
-                const formatDate = (dateStr) => {
-                    const d = new Date(dateStr + 'T00:00:00');
-                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                };
-                
-                // Render year groups
-                Object.keys(byYear).sort((a, b) => b - a).forEach(year => {
-                    const div = document.createElement('div');
-                    div.className = 'year-group';
-                    div.innerHTML = '<h2 class="year-heading">' + year + '</h2><ul class="posts-list"></ul>';
-                    const ul = div.querySelector('ul');
-                    byYear[year].forEach(p => {
-                        const li = document.createElement('li');
-                        li.className = 'post-list-item';
-                        li.innerHTML = '<time class="post-date">' + formatDate(p.dataset.date) + '</time>' +
-                            '<a href="' + p.dataset.href + '" class="post-list-link">' + p.dataset.title + '</a>';
-                        ul.appendChild(li);
-                    });
-                    section.appendChild(div);
-                });
-            })();
-            </script>
         </main>
 
         <footer class="footer">
