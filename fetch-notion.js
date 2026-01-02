@@ -838,6 +838,10 @@ async function pushToProduction() {
     const date = new Date().toISOString().split('T')[0];
     execSync(`git commit -m "Update blog posts from Notion - ${date}"`, { stdio: 'inherit' });
     
+    // Pull latest changes before pushing to avoid conflicts with GitHub Actions
+    console.log('   Pulling latest changes...');
+    execSync('git pull --rebase origin main', { stdio: 'inherit' });
+    
     execSync('git push origin main', { stdio: 'inherit' });
     
     console.log('✅ Successfully pushed to production!');
