@@ -662,12 +662,17 @@ function generatePostHtml(title, date, content) {
 `;
 }
 
+// Extract year from date string without timezone shift
+function getYear(dateString) {
+  return parseInt(dateString.split('-')[0], 10);
+}
+
 // Generate the thoughts index page
 function generateIndexHtml(posts) {
   // Group posts by year
   const postsByYear = {};
   posts.forEach(post => {
-    const year = new Date(post.date).getFullYear();
+    const year = getYear(post.date);
     if (!postsByYear[year]) postsByYear[year] = [];
     postsByYear[year].push(post);
   });
