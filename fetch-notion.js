@@ -156,17 +156,10 @@ async function blocksToHtml(blocks, slug) {
           .replace(/^(<br>)+|(<br>)+$/g, ''); // Trim leading/trailing <br> tags
         const paragraphHtml = text ? `<p>${text}</p>` : '';
 
-        // Debug logging for paragraphs with bold text
-        const plainText = block.paragraph.rich_text.map(t => t.plain_text).join('');
-        if (block.paragraph.rich_text.some(t => t.annotations?.bold)) {
-          console.log(`    🔍 Bold paragraph: "${plainText}" | has_children: ${block.has_children}`);
-        }
-
         // Important: Notion "Turn into toggle" can apply to paragraphs.
         // In that case, the paragraph block will have children, and we must render them.
         if (block.has_children) {
           const children = await fetchBlockChildren(block.id);
-          console.log(`    📦 Children count: ${children.length} | types: ${children.map(c => c.type).join(', ')}`);
           const childrenHtml = await blocksToHtml(children, slug);
           html = paragraphHtml ? `${paragraphHtml}\n${childrenHtml}` : childrenHtml;
         } else {
