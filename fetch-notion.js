@@ -151,22 +151,54 @@ async function blocksToHtml(blocks, slug) {
     let html = '';
     
     switch (block.type) {
-      case 'paragraph':
+      case 'paragraph': {
         const text = richTextToHtml(block.paragraph.rich_text)
           .replace(/^(<br>)+|(<br>)+$/g, ''); // Trim leading/trailing <br> tags
-        html = text ? `<p>${text}</p>` : '';
+        const paragraphHtml = text ? `<p>${text}</p>` : '';
+
+        // Important: Notion "Turn into toggle" can apply to paragraphs.
+        // In that case, the paragraph block will have children, and we must render them.
+        if (block.has_children) {
+          const children = await fetchBlockChildren(block.id);
+          const childrenHtml = await blocksToHtml(children, slug);
+          html = paragraphHtml ? `${paragraphHtml}\n${childrenHtml}` : childrenHtml;
+        } else {
+          html = paragraphHtml;
+        }
         break;
+      }
 
       case 'heading_1':
         html = `<h1>${richTextToHtml(block.heading_1.rich_text)}</h1>`;
+
+        // Notion toggleable headings come through as heading_* with children.
+        if (block.has_children) {
+          const children = await fetchBlockChildren(block.id);
+          const childrenHtml = await blocksToHtml(children, slug);
+          html = `${html}\n${childrenHtml}`;
+        }
         break;
 
       case 'heading_2':
         html = `<h2>${richTextToHtml(block.heading_2.rich_text)}</h2>`;
+
+        // Notion toggleable headings come through as heading_* with children.
+        if (block.has_children) {
+          const children = await fetchBlockChildren(block.id);
+          const childrenHtml = await blocksToHtml(children, slug);
+          html = `${html}\n${childrenHtml}`;
+        }
         break;
 
       case 'heading_3':
         html = `<h3>${richTextToHtml(block.heading_3.rich_text)}</h3>`;
+
+        // Notion toggleable headings come through as heading_* with children.
+        if (block.has_children) {
+          const children = await fetchBlockChildren(block.id);
+          const childrenHtml = await blocksToHtml(children, slug);
+          html = `${html}\n${childrenHtml}`;
+        }
         break;
 
       case 'bulleted_list_item': {
